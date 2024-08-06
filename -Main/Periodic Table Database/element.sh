@@ -20,5 +20,5 @@ fi
 
 # Hey these ~15 lines of code took me a while!
 # CAST() really helped
-# But maybe I shouldn't have used them since they weren't introduced in the courses
+# But maybe I shouldn't have used it since it wasn't introduced in the courses
 # Anyway, thanks and bye~
