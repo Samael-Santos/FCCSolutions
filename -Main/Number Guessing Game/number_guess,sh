@@ -1,0 +1,44 @@
+#!/bin/bash
+
+PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
+
+echo "Enter your username:"; read USER
+if [[ $(echo $USER | wc -c) -gt 22 ]]; then
+	echo "Invalid username."
+	exit 0
+fi 
+
+BEST=$($PSQL "SELECT best FROM players WHERE name = '$USER'")
+if [[ -z $BEST ]]; then
+	echo "Welcome, $USER! It looks like this is your first time here."
+	INSERT=$($PSQL "INSERT INTO players(name) VALUES ('$USER')")
+else
+	PLAYED=$($PSQL "SELECT played FROM players WHERE name = '$USER'")
+	echo "Welcome back, $USER! You have played $PLAYED games, and your best game took $BEST guesses."
+fi
+
+SECRET=$((1 + RANDOM % 1000))
+echo "Guess the secret number between 1 and 1000:"; read GUESS
+echo $SECRET
+
+while [[ $GUESS != $SECRET ]]; do
+	if [[ ! $GUESS =~ ^[0-9]+$ ]]; then
+		echo "That is not an integer, guess again:"; read GUESS
+	elif [[ $GUESS -gt $SECRET ]]; then
+		TRIES=$((TRIES+1))
+		echo "It's lower than that, guess again:"; read GUESS
+	else
+		TRIES=$((TRIES+1))
+		echo "It's higher than that, guess again:"; read GUESS
+	fi
+done
+TRIES=$((TRIES+1))
+
+UPDATE="$($PSQL "UPDATE players SET played = played + 1,
+	best =
+	CASE WHEN best > $TRIES THEN $TRIES
+		WHEN best IS NULL THEN $TRIES
+	END
+	WHERE name = '$USER'")" 
+
+echo "You guessed it in $TRIES tries. The secret number was $SECRET. Nice job!"
